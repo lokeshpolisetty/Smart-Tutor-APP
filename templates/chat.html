@@ -1,0 +1,1269 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Tutor Chat{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100 p-0">
+    <div class="row h-100 g-0">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 p-0">
+            <div class="sidebar-wrapper bg-dark text-white d-flex flex-column h-100">
+                <div class="sidebar d-flex flex-column">
+                    <div class="p-3 border-bottom border-secondary">
+                        <button id="newChatBtn" class="btn btn-outline-light btn-sm w-100 text-start">
+                            <i class="fas fa-plus me-2"></i>New Chat
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="p-3 border-bottom border-secondary">
+                        <h6 class="small text-muted mb-2">QUICK ACTIONS</h6>
+                        <div class="d-grid gap-1">
+                            <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                                    data-action="explanation">
+                                <i class="fas fa-lightbulb me-2"></i>Explain Topic
+                            </button>
+                            <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                                    data-action="practice">
+                                <i class="fas fa-dumbbell me-2"></i>Practice Problems
+                            </button>
+                            <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                                    data-action="quiz">
+                                <i class="fas fa-question-circle me-2"></i>Create Quiz
+                            </button>
+                            <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                                    data-action="study_notes">
+                                <i class="fas fa-sticky-note me-2"></i>Study Notes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Conversations -->
+                    <div class="flex-grow-1 overflow-auto">
+                        <div class="p-3">
+                            <h6 class="small text-muted mb-2">RECENT CHATS</h6>
+                            <div id="recentConversations">
+                                {% if conversations %}
+                                    {% for conv in conversations[:10] %}
+                                    <div class="conversation-item p-2 rounded mb-1" 
+                                         data-question="{{ conv.question|e }}"
+                                         data-response="{{ conv.response|e }}">
+                                        <div class="small">{{ conv.question[:40] }}{% if conv.question|length > 40 %}...{% endif %}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">
+                                            {{ conv.created_at.strftime('%m/%d %H:%M') }}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-muted small">No conversations yet</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- Main Chat Area -->
+        <div class="col-md-9 col-lg-10 p-0">
+            <div class="chat-container d-flex flex-column w-100" style="background: white;">
+                <!-- Chat Header -->
+                <div class="chat-header bg-white border-bottom p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary rounded-circle p-2 me-3">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Smart Tutor</h5>
+                            <small class="text-muted">Your personal learning assistant</small>
+                        </div>
+                        <div class="ms-auto d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm d-md-none" id="sidebarToggle">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" id="clearChatBtn">
+                                <i class="fas fa-trash me-1"></i>Clear Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if full_conversation %}
+                <div class="chat-messages flex-grow-1 overflow-auto p-3" id="chatMessages">
+                    <div class="message-bubble user-message">
+                        <div class="message-content">{{ full_conversation.question }}</div>
+                    </div>
+                    <div class="message-bubble ai-message">
+                        <div class="message-content">{{ full_conversation.response|safe }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="chat-messages flex-grow-1 overflow-auto p-3" id="chatMessages">
+                    <div class="welcome-message text-center py-5">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-robot text-primary fs-1"></i>
+                        </div>
+                        <h4>Welcome to Smart Tutor!</h4>
+                        <p class="text-muted">I'm here to help you learn. Ask me anything about:</p>
+                        <div class="row g-2 mt-3 justify-content-center">
+                            <div class="col-6 col-md-3">
+                                <div class="bg-light rounded p-2 small text-center">
+                                    <i class="fas fa-calculator text-primary me-1"></i>Mathematics
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-light rounded p-2 small text-center">
+                                    <i class="fas fa-flask text-success me-1"></i>Science
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-light rounded p-2 small text-center">
+                                    <i class="fas fa-book text-warning me-1"></i>Literature
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-light rounded p-2 small text-center">
+                                    <i class="fas fa-laptop-code text-info me-1"></i>Programming
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Chat Input -->
+                <div class="chat-input bg-white border-top p-3">
+                    <form id="chatForm" class="d-flex flex-column gap-2">
+                        <div class="d-flex gap-2">
+                            <div class="flex-grow-1">
+                                <div class="input-group">
+                                    <select id="subjectSelect" class="form-select" style="max-width: 120px;" aria-label="Select subject">
+                                        <option value="">Subject</option>
+                                        <option value="Mathematics">Math</option>
+                                        <option value="Physics">Physics</option>
+                                        <option value="Chemistry">Chemistry</option>
+                                        <option value="Biology">Biology</option>
+                                        <option value="English">English</option>
+                                        <option value="History">History</option>
+                                        <option value="Programming">Programming</option>
+                                        <option value="Science">Science</option>
+                                    </select>
+                                    <textarea id="questionInput" class="form-control" 
+                                           placeholder="Ask me anything..." 
+                                           required 
+                                           rows="1"
+                                           style="resize: none; overflow-y: hidden;"></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="sendBtn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 small text-muted">
+                            <span id="conversationTypeIndicator"></span>
+                            <span class="ms-auto">Press Enter to send, Shift+Enter for new line</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Sidebar Overlay -->
+<div class="offcanvas offcanvas-start text-white" tabindex="-1" id="mobileSidebar" style="background-color: #343a40;">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Smart Tutor</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <!-- Mobile version of sidebar content -->
+        <div class="p-3 border-bottom border-secondary">
+            <h6 class="small text-muted mb-2">QUICK ACTIONS</h6>
+            <div class="d-grid gap-1">
+                <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                        data-action="explanation">
+                    <i class="fas fa-lightbulb me-2"></i>Explain Topic
+                </button>
+                <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                        data-action="practice">
+                    <i class="fas fa-dumbbell me-2"></i>Practice Problems
+                </button>
+                <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                        data-action="quiz">
+                    <i class="fas fa-question-circle me-2"></i>Create Quiz
+                </button>
+                <button class="btn btn-outline-light btn-sm text-start quick-action-btn" 
+                        data-action="study_notes">
+                    <i class="fas fa-sticky-note me-2"></i>Study Notes
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-3">
+            <a href="{{ url_for('history') }}" class="btn btn-outline-light btn-sm w-100">
+                <i class="fas fa-history me-2"></i>View All History
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Error Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong class="me-auto">Error</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="errorToastBody">
+            An error occurred. Please try again.
+        </div>
+    </div>
+</div>
+
+<script id="typing-indicator-template" type="text/template">
+    <div class="message-bubble ai-message typing-indicator-bubble">
+        <div class="message-content typing-indicator">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+    </div>
+</script>
+
+<style>
+.sidebar {
+    height: calc(100vh - 76px);
+}
+
+.chat-container {
+    height: calc(100vh - 76px);
+}
+
+.chat-messages {
+    background-color: #f8f9fa;
+    scroll-behavior: smooth;
+}
+
+.conversation-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.conversation-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(2px);
+}
+
+.message-bubble {
+    margin-bottom: 1rem;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.user-message {
+    text-align: right;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+    padding: 12px 16px;
+    display: inline-block;
+    max-width: 80%;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.ai-message .message-content {
+    background-color: white;
+    color: #333;
+    border-radius: 18px 18px 18px 4px;
+    padding: 12px 16px;
+    display: inline-block;
+    max-width: 80%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.error-message .message-content {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.quick-action-btn.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: white;
+}
+
+.conversation-type-indicator {
+    font-size: 0.75rem;
+    color: #007bff;
+    font-weight: 500;
+}
+
+#questionInput {
+    min-height: 38px;
+    max-height: 120px;
+    transition: height 0.2s ease;
+}
+
+.chat-input {
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+    border-top: 2px solid #e9ecef;
+}
+
+/* Quiz Styles */
+.quiz-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin: 10px 0;
+}
+
+.quiz-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.quiz-question {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.quiz-question h5 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.quiz-options {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.quiz-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.quiz-option:hover {
+    border-color: #007bff;
+    background-color: #f8f9ff;
+}
+
+.quiz-option.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.quiz-option.correct {
+    border-color: #28a745;
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.quiz-option.incorrect {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.quiz-option.disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.quiz-feedback {
+    background: #e7f3ff;
+    border: 1px solid #b3d7ff;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.quiz-feedback.correct {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.quiz-feedback.incorrect {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.quiz-timer {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.quiz-timer.warning {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.quiz-progress {
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.quiz-progress-bar {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.quiz-summary {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.quiz-summary h3 {
+    margin-bottom: 20px;
+}
+
+.quiz-score {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.quiz-score.excellent {
+    color: #28a745;
+}
+
+.quiz-score.good {
+    color: #ffc107;
+}
+
+.quiz-score.needs-improvement {
+    color: #dc3545;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 24px;
+}
+
+.typing-indicator .dot {
+    width: 8px;
+    height: 8px;
+    background: #007bff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: typing-bounce 1.2s infinite both;
+}
+
+.typing-indicator .dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator .dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40% { transform: scale(1.2); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        height: calc(100vh - 56px);
+    }
+    
+    .user-message .message-content,
+    .ai-message .message-content {
+        max-width: 95%;
+    }
+    
+    .quiz-container {
+        padding: 15px;
+        margin: 5px 0;
+    }
+    
+    .quiz-options {
+        gap: 8px;
+    }
+    
+    .quiz-option {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Enhanced scrollbar */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+
+<script>
+class ChatInterface {
+    constructor() {
+        this.currentConversationType = 'general';
+        this.isLoading = false;
+        this.errorToast = null;
+        
+        this.initializeEventListeners();
+        this.initializeModals();
+        this.handleURLParams();
+    }
+    
+    initializeEventListeners() {
+        // Chat form submission
+        document.getElementById('chatForm').addEventListener('submit', (e) => this.handleSubmit(e));
+        
+        // Quick action buttons
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleQuickAction(e));
+        });
+        
+        // Conversation items
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            item.addEventListener('click', (e) => this.handleConversationClick(e));
+        });
+        
+        // Clear chat button
+        document.getElementById('clearChatBtn').addEventListener('click', () => this.clearChat());
+        
+        // Sidebar toggle for mobile
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => this.toggleMobileSidebar());
+        }
+        
+        // Input handling
+        const questionInput = document.getElementById('questionInput');
+        questionInput.addEventListener('input', (e) => this.handleInputChange(e));
+        questionInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        
+        // Form validation
+        questionInput.addEventListener('input', () => this.validateForm());
+    }
+    
+    initializeModals() {
+        this.errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+    }
+    
+    handleURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const prefillQuestion = urlParams.get('question');
+        const prefillSubject = urlParams.get('subject');
+        const prefillType = urlParams.get('type');
+        
+        if (prefillType) {
+            this.currentConversationType = prefillType;
+            const questionInput = document.getElementById('questionInput');
+            const placeholders = {
+                explanation: 'What topic would you like me to explain?',
+                practice: 'What topic do you want practice problems for?',
+                quiz: 'What topic should I create a quiz about?',
+                study_notes: 'What topic do you need study notes for?'
+            };
+            questionInput.placeholder = placeholders[prefillType] || 'Ask me anything...';
+            // Highlight the correct quick action button
+            document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.action === prefillType);
+            });
+            this.updateConversationTypeIndicator(prefillType);
+        }
+        
+        if (prefillQuestion) {
+            document.getElementById('questionInput').value = prefillQuestion;
+            if (prefillSubject) {
+                document.getElementById('subjectSelect').value = prefillSubject;
+            }
+            document.getElementById('questionInput').focus();
+            this.validateForm();
+        }
+    }
+    
+    async handleSubmit(e) {
+        e.preventDefault();
+
+        if (this.isLoading) return;
+        this.isLoading = true; // Ensure loading state is set immediately
+
+        const questionInput = document.getElementById('questionInput');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const question = questionInput.value.trim();
+        const subject = subjectSelect ? subjectSelect.value : '';
+
+        if (!question) return;
+
+        // Set loading state on send button
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+        }
+
+        try {
+            this.validateForm();
+            
+            // Add user message to chat
+            this.addMessage(question, 'user', subject);
+            
+            // Clear input
+            questionInput.value = '';
+            this.autoResize(questionInput);
+            
+            // Show typing indicator
+            this.showTypingIndicator();
+            
+            const response = await fetch('/ai-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: question,
+                    subject: subject,
+                    type: this.currentConversationType
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Add AI response to chat - check if it's a quiz
+            if (data.type === 'quiz') {
+                this.handleQuizResponse(data.response);
+            } else {
+                this.addMessage(data.response, 'ai');
+            }
+            
+        } catch (error) {
+            this.addMessage('Sorry, I encountered an error. Please try again.', 'ai', '', true);
+            this.showError(error.message);
+            console.error('Error:', error);
+        } finally {
+            this.isLoading = false;
+            // Restore send button
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+            this.hideTypingIndicator();
+            this.resetConversationType();
+            this.validateForm();
+        }
+    }
+    
+    handleQuizResponse(response) {
+        const quizData = this.parseQuizResponse(response);
+        if (quizData.length > 0) {
+            this.showInteractiveQuiz(quizData);
+        } else {
+            // Fallback to regular message if parsing fails
+            this.addMessage(response, 'ai');
+        }
+    }
+    
+    parseQuizResponse(response) {
+        const quiz = [];
+        // Updated regex to handle the exact format from the AI
+        const regex = /Q(\d+):\s*(.*?)\nA\)\s*(.*?)\nB\)\s*(.*?)\nC\)\s*(.*?)\nD\)\s*(.*?)\nCorrect Answer:\s*([A-D])\nExplanation:\s*(.*?)(?=\n\nQ\d+:|$)/gs;
+        let match;
+        
+        while ((match = regex.exec(response)) !== null) {
+            quiz.push({
+                questionNumber: parseInt(match[1]),
+                question: match[2].trim(),
+                options: [
+                    { label: "A", text: match[3].trim() },
+                    { label: "B", text: match[4].trim() },
+                    { label: "C", text: match[5].trim() },
+                    { label: "D", text: match[6].trim() }
+                ],
+                answer: match[7].trim(),
+                explanation: match[8].trim()
+            });
+        }
+        
+        return quiz;
+    }
+    
+    showInteractiveQuiz(quizData) {
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+        let timer = null;
+        let timeLeft = 30;
+        
+        const chatMessages = document.getElementById('chatMessages');
+        
+        // Remove welcome message if it exists
+        const welcomeMsg = chatMessages.querySelector('.welcome-message');
+        if (welcomeMsg) {
+            welcomeMsg.remove();
+        }
+        
+        showQuestion();
+        
+        function showQuestion() {
+            if (currentQuestion >= quizData.length) {
+                showSummary();
+                return;
+            }
+            
+            timeLeft = 30;
+            const question = quizData[currentQuestion];
+            
+            const quizHTML = `
+                <div class="quiz-container" id="quizContainer">
+                    <div class="quiz-header">
+                        <h4><i class="fas fa-question-circle text-primary me-2"></i>Interactive Quiz</h4>
+                        <div class="quiz-progress">
+                            <div class="quiz-progress-bar" style="width: ${((currentQuestion) / quizData.length) * 100}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Question ${currentQuestion + 1} of ${quizData.length}</h6>
+                            <div class="quiz-timer" id="quizTimer">
+                                <i class="fas fa-clock me-1"></i><span id="timeLeft">${timeLeft}</span>s
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-4">${question.question}</h5>
+                        
+                        <div class="quiz-options" id="quizOptions">
+                            ${question.options.map(option => `
+                                <div class="quiz-option" data-answer="${option.label}">
+                                    <strong>${option.label})</strong> ${option.text}
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div id="quizFeedback" class="quiz-feedback" style="display: none;"></div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.innerHTML = quizHTML;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add click handlers to options
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.addEventListener('click', () => selectOption(option.dataset.answer));
+            });
+            
+            // Start timer
+            timer = setInterval(() => {
+                timeLeft--;
+                const timeLeftElement = document.getElementById('timeLeft');
+                if (timeLeftElement) {
+                    timeLeftElement.textContent = timeLeft;
+                    
+                    // Change timer color when time is running out
+                    const timerElement = document.getElementById('quizTimer');
+                    if (timeLeft <= 10) {
+                        timerElement.classList.add('warning');
+                    }
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    selectOption(null); // Time's up
+                }
+            }, 1000);
+        }
+        
+        function selectOption(selectedAnswer) {
+            clearInterval(timer);
+            
+            const question = quizData[currentQuestion];
+            const correctAnswer = question.answer;
+            const isCorrect = selectedAnswer === correctAnswer;
+            
+            if (isCorrect) {
+                score++;
+            }
+            
+            userAnswers.push({
+                question: currentQuestion + 1,
+                selected: selectedAnswer,
+                correct: correctAnswer,
+                isCorrect: isCorrect
+            });
+            
+            // Disable all options and show feedback
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.classList.add('disabled');
+                option.style.pointerEvents = 'none';
+                
+                if (option.dataset.answer === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (option.dataset.answer === selectedAnswer && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Show feedback
+            const feedbackElement = document.getElementById('quizFeedback');
+            let feedbackHTML = '';
+            
+            if (selectedAnswer === null) {
+                feedbackHTML = `
+                    <div class="quiz-feedback incorrect">
+                        <h6><i class="fas fa-clock me-2"></i>Time's Up!</h6>
+                        <p><strong>Correct Answer:</strong> ${correctAnswer}</p>
+                        <p><strong>Explanation:</strong> ${question.explanation}</p>
+                    </div>
+                `;
+            } else if (isCorrect) {
+                feedbackHTML = `
+                    <div class="quiz-feedback correct">
+                        <h6><i class="fas fa-check-circle me-2"></i>Correct!</h6>
+                        <p><strong>Explanation:</strong> ${question.explanation}</p>
+                    </div>
+                `;
+            } else {
+                feedbackHTML = `
+                    <div class="quiz-feedback incorrect">
+                        <h6><i class="fas fa-times-circle me-2"></i>Incorrect</h6>
+                        <p><strong>Correct Answer:</strong> ${correctAnswer}</p>
+                        <p><strong>Explanation:</strong> ${question.explanation}</p>
+                    </div>
+                `;
+            }
+            
+            feedbackHTML += `
+                <button class="btn btn-primary mt-3" id="nextQuestionBtn">
+                    ${currentQuestion + 1 < quizData.length ? 'Next Question' : 'View Results'}
+                    <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            `;
+            
+            feedbackElement.innerHTML = feedbackHTML;
+            feedbackElement.style.display = 'block';
+            
+            // Add next button handler
+            document.getElementById('nextQuestionBtn').addEventListener('click', () => {
+                currentQuestion++;
+                showQuestion();
+            });
+        }
+        
+        function showSummary() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            let scoreClass = 'needs-improvement';
+            let message = 'Keep practicing!';
+            let icon = 'fa-redo';
+            
+            if (percentage >= 80) {
+                scoreClass = 'excellent';
+                message = 'Excellent work!';
+                icon = 'fa-trophy';
+            } else if (percentage >= 60) {
+                scoreClass = 'good';
+                message = 'Good job!';
+                icon = 'fa-thumbs-up';
+            }
+            
+            const summaryHTML = `
+                <div class="quiz-summary">
+                    <div class="text-center">
+                        <i class="fas ${icon} fa-3x mb-3"></i>
+                        <h3>Quiz Complete!</h3>
+                        <div class="quiz-score ${scoreClass}">
+                            ${score} / ${quizData.length}
+                        </div>
+                        <p class="lead">${percentage}% - ${message}</p>
+                        
+                        <div class="row g-3 mt-4">
+                            <div class="col-6">
+                                <div class="bg-white bg-opacity-20 rounded p-3">
+                                    <h6>Correct</h6>
+                                    <div class="h4 text-success">${score}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-white bg-opacity-20 rounded p-3">
+                                    <h6>Incorrect</h6>
+                                    <div class="h4 text-danger">${quizData.length - score}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
+                            <button class="btn btn-light" onclick="location.reload()">
+                                <i class="fas fa-redo me-2"></i>New Chat
+                            </button>
+                            <button class="btn btn-outline-light" id="reviewAnswersBtn">
+                                <i class="fas fa-list me-2"></i>Review Answers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.innerHTML = summaryHTML;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add review answers functionality
+            document.getElementById('reviewAnswersBtn').addEventListener('click', () => {
+                showReview();
+            });
+        }
+        
+        function showReview() {
+            let reviewHTML = `
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <h4><i class="fas fa-list text-primary me-2"></i>Answer Review</h4>
+                        <button class="btn btn-outline-primary btn-sm" onclick="location.reload()">
+                            <i class="fas fa-home me-1"></i>New Chat
+                        </button>
+                    </div>
+            `;
+            
+            userAnswers.forEach((answer, index) => {
+                const question = quizData[index];
+                const statusIcon = answer.isCorrect ? 'fa-check-circle text-success' : 'fa-times-circle text-danger';
+                const statusText = answer.isCorrect ? 'Correct' : 'Incorrect';
+                
+                reviewHTML += `
+                    <div class="quiz-question mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas ${statusIcon} me-2"></i>
+                            <h6 class="mb-0">Question ${answer.question}: ${statusText}</h6>
+                        </div>
+                        <p class="mb-3">${question.question}</p>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Your Answer:</small>
+                                <div class="p-2 rounded ${answer.isCorrect ? 'bg-success bg-opacity-10' : 'bg-danger bg-opacity-10'}">
+                                    ${answer.selected ? `${answer.selected}) ${question.options.find(opt => opt.label === answer.selected)?.text || 'No answer'}` : 'No answer (time expired)'}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Correct Answer:</small>
+                                <div class="p-2 rounded bg-success bg-opacity-10">
+                                    ${answer.correct}) ${question.options.find(opt => opt.label === answer.correct)?.text}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">Explanation:</small>
+                            <p class="small mb-0">${question.explanation}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            reviewHTML += '</div>';
+            chatMessages.innerHTML = reviewHTML;
+            chatMessages.scrollTop = 0;
+        }
+    }
+    
+    addMessage(content, sender, subject = '', isError = false) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message-bubble ${sender}-message ${isError ? 'error-message' : ''}`;
+        
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const escapedContent = this.escapeHtml(content);
+        
+        if (sender === 'user') {
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${subject ? `<div class="badge bg-light text-dark mb-1">${this.escapeHtml(subject)}</div><br>` : ''}
+                    ${escapedContent}
+                </div>
+                <div class="message-time">${time}</div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="d-flex align-items-start">
+                    <div class="bg-primary rounded-circle p-2 me-2 mt-1 flex-shrink-0" style="width: 32px; height: 32px;">
+                        <i class="fas fa-robot text-white small"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="message-content ${isError ? 'error-message' : ''}">
+                            ${this.formatAIResponse(escapedContent)}
+                        </div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        this.scrollToBottom();
+        
+        // Remove welcome message if it exists
+        const welcomeMsg = chatMessages.querySelector('.welcome-message');
+        if (welcomeMsg) {
+            welcomeMsg.remove();
+        }
+    }
+    
+    formatAIResponse(content) {
+        return content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/```(.*?)```/gs, '<pre class="bg-light p-2 rounded"><code>$1</code></pre>')
+            .replace(/`(.*?)`/g, '<code class="bg-light px-1 rounded">$1</code>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>')
+            .replace(/^(.+)/, '<p>$1')
+            .replace(/(.+)$/, '$1</p>');
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    handleQuickAction(e) {
+        const action = e.currentTarget.dataset.action;
+        this.currentConversationType = action;
+        
+        const questionInput = document.getElementById('questionInput');
+        const placeholders = {
+            explanation: 'What topic would you like me to explain?',
+            practice: 'What topic do you want practice problems for?',
+            quiz: 'What topic should I create a quiz about?',
+            study_notes: 'What topic do you need study notes for?'
+        };
+        
+        questionInput.placeholder = placeholders[action] || 'Ask me anything...';
+        questionInput.focus();
+        
+        // Update visual indicators
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        e.currentTarget.classList.add('active');
+        
+        this.updateConversationTypeIndicator(action);
+        
+        // Close mobile sidebar if open
+        const mobileSidebar = bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar'));
+        if (mobileSidebar) {
+            mobileSidebar.hide();
+        }
+    }
+    
+    updateConversationTypeIndicator(type) {
+        const indicator = document.getElementById('conversationTypeIndicator');
+        const typeLabels = {
+            explanation: '💡 Explanation mode',
+            practice: '🏋️ Practice mode',
+            quiz: '❓ Quiz mode',
+            study_notes: '📝 Study notes mode'
+        };
+        
+        indicator.textContent = typeLabels[type] || '';
+        indicator.className = type ? 'conversation-type-indicator' : '';
+    }
+    
+    resetConversationType() {
+        this.currentConversationType = 'general';
+        document.getElementById('questionInput').placeholder = 'Ask me anything...';
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        this.updateConversationTypeIndicator('');
+    }
+    
+    handleConversationClick(e) {
+        const item = e.currentTarget;
+        const question = item.dataset.question;
+        const response = item.dataset.response;
+        
+        if (question && response) {
+            this.loadConversation(question, response);
+        }
+    }
+    
+    loadConversation(question, response) {
+        this.clearChat();
+        this.addMessage(question, 'user');
+        
+        setTimeout(() => {
+            this.addMessage(response, 'ai');
+        }, 500);
+    }
+    
+    clearChat() {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = `
+            <div class="welcome-message text-center py-5">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="fas fa-robot text-primary fs-1"></i>
+                </div>
+                <h4>Welcome to Smart Tutor!</h4>
+                <p class="text-muted">I'm here to help you learn. Ask me anything!</p>
+            </div>
+        `;
+        this.resetConversationType();
+    }
+    
+    handleInputChange(e) {
+        this.autoResize(e.target);
+    }
+    
+    handleKeyDown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+        }
+    }
+    
+    autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+    
+    validateForm() {
+        const questionInput = document.getElementById('questionInput');
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = !questionInput.value.trim() || this.isLoading;
+    }
+    
+    toggleMobileSidebar() {
+        const sidebar = new bootstrap.Offcanvas(document.getElementById('mobileSidebar'));
+        sidebar.show();
+    }
+    
+    showTypingIndicator() {
+        const chatMessages = document.getElementById('chatMessages');
+        const template = document.getElementById('typing-indicator-template').innerHTML;
+        chatMessages.insertAdjacentHTML('beforeend', template);
+        this.scrollToBottom();
+    }
+    
+    hideTypingIndicator() {
+        const chatMessages = document.getElementById('chatMessages');
+        const typingBubble = chatMessages.querySelector('.typing-indicator-bubble');
+        if (typingBubble) {
+            typingBubble.remove();
+        }
+    }
+    
+    showError(message) {
+        document.getElementById('errorToastBody').textContent = message;
+        if (this.errorToast) {
+            this.errorToast.show();
+        }
+    }
+    
+    scrollToBottom() {
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.querySelector('.chat-input');
+        if (chatMessages) {
+            let tries = 0;
+            function doScroll() {
+                // Scroll so the bottom of chatMessages is just above the input
+                const inputHeight = chatInput ? chatInput.offsetHeight : 0;
+                chatMessages.scrollTop = chatMessages.scrollHeight - inputHeight;
+                tries++;
+                if (
+                    tries < 10 &&
+                    Math.abs(chatMessages.scrollTop + chatMessages.clientHeight - chatMessages.scrollHeight + inputHeight) > 2
+                ) {
+                    setTimeout(doScroll, 80);
+                }
+            }
+            doScroll();
+        }
+    }
+    
+    showLoading() {
+        // Remove modal popup logic
+        // Add typing indicator to chat
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages && !chatMessages.querySelector('.typing-indicator-bubble')) {
+            const template = document.getElementById('typing-indicator-template');
+            if (template) {
+                chatMessages.insertAdjacentHTML('beforeend', template.innerHTML);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+    }
+
+    hideLoading() {
+        // Remove typing indicator from chat
+        const typingBubble = document.querySelector('.typing-indicator-bubble');
+        if (typingBubble) typingBubble.remove();
+    }
+}
+
+// Initialize the chat interface when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.chatInterface = new ChatInterface();
+});
+</script>
+{% endblock %}

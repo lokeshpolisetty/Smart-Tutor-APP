@@ -1,0 +1,502 @@
+/* AI Tutor Platform Styles */
+
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.nav-link {
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+/* Cards */
+.card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Chat Styles */
+.chat-container {
+    width: 100%;
+    min-height: 100vh;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    flex-shrink: 0;
+}
+
+#chatMessages {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 400px;
+    max-height: calc(100vh - 160px); /* 160px = header + input height estimate */
+    background: white;
+    width: 100%;
+    margin-bottom: 0;
+    padding-bottom: 100px; /* Increased to ensure last message is visible above input */
+    box-sizing: border-box;
+}
+
+.chat-input {
+    flex-shrink: 0;
+    background: #fff;
+    border-top: 2px solid #e9ecef;
+    position: static;
+    left: unset;
+    right: unset;
+    width: 100%;
+    z-index: 1;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+}
+
+@media (min-width: 768px) {
+    .chat-input {
+        left: 220px; /* width of sidebar */
+        width: calc(100vw - 220px);
+    }
+}
+
+.conversation-item {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.conversation-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Feature Icons */
+.feature-icon, .subject-icon {
+    width: 60px;
+    height: 60px;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Subject Cards */
+.subject-card {
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+}
+
+.subject-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Chat Preview */
+.chat-preview {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 80vh;
+        text-align: center;
+    }
+    
+    .display-3 {
+        font-size: 2.5rem;
+    }
+    
+    .chat-container {
+        height: calc(100vh - 56px);
+    }
+    
+    .sidebar {
+        position: static;
+        height: auto;
+    }
+}
+
+@media (max-width: 991px) {
+    .user-message .message-content,
+    .ai-message .message-content {
+        max-width: 95%;
+    }
+    #chatMessages {
+        max-height: calc(100vh - 140px);
+    }
+}
+
+/* Custom utilities */
+.shadow-sm {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Loading states */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Alert improvements */
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Badge improvements */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+    border-radius: 6px;
+}
+
+/* Welcome message */
+.welcome-message {
+    color: #6c757d;
+}
+
+/* Scrollbar styling */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Prevent body/page from scrolling when inside chat */
+body, html {
+    height: 100%;
+    overflow: auto !important;
+}
+
+/* Prevent body/page from scrolling only when inside chat */
+.chat-container ~ .chat-messages,
+.chat-container {
+  /* If you want to restrict scrolling for chat, do it here with a more specific selector */
+}
+
+/* Main chat area margin to account for fixed sidebar */
+@media (min-width: 992px) {
+    .chat-container {
+        margin-left: 220px;
+    }
+}
+
+/* Chat message alignment and spacing improvements */
+.user-message .message-content {
+    background-color: #007bff;
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+    padding: 12px 16px;
+    display: inline-block;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.ai-message .message-content {
+    background-color: #f1f5f9;
+    color: #334155;
+    border-radius: 18px 18px 18px 4px;
+    padding: 12px 16px;
+    display: inline-block;
+    max-width: 80%;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.message-bubble {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.3s ease-in;
+    width: 100%;
+}
+
+/* --- Chat Input Fixes --- */
+@media (min-width: 992px) {
+  .chat-input {
+    left: 220px; /* width of sidebar */
+    width: calc(100vw - 220px);
+  }
+  #chatMessages {
+    max-height: calc(100vh - 160px); /* header + input height */
+    padding-bottom: 90px; /* match input height */
+  }
+}
+
+@media (max-width: 991.98px) {
+  .chat-input {
+    left: 0;
+    width: 100vw;
+  }
+  #chatMessages {
+    max-height: calc(100vh - 140px);
+    padding-bottom: 90px;
+  }
+}
+
+/* Ensure chat input is always above content and not overlapping sidebar */
+.chat-input {
+  z-index: 1050;
+}
+
+/* Remove any extra margin/padding from chat area */
+.chat-container, .col-md-9, .col-lg-10, .row, .container-fluid {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* --- Refactored Chat Layout --- */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-bottom: 16px; /* space above input */
+}
+
+.chat-input {
+  position: static;
+  left: unset;
+  right: unset;
+  width: 100%;
+  z-index: 1;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+  border-top: 2px solid #e9ecef;
+  background: #fff;
+}
+
+@media (max-width: 991.98px) {
+  .chat-container {
+    height: calc(100vh - 56px);
+  }
+}
+
+/* --- Final Chat Layout Fixes --- */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Use 100% so it fits parent, not viewport */
+  min-height: 0;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: 100%;
+  padding-bottom: 16px;
+}
+
+.chat-input {
+  position: static;
+  left: unset;
+  right: unset;
+  width: 100%;
+  z-index: 1;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+  border-top: 2px solid #e9ecef;
+  background: #fff;
+}
+
+@media (max-width: 991.98px) {
+  .chat-container {
+    height: 100%;
+  }
+}
+
+/* Sidebar scrollbar styling */
+.sidebar-wrapper .flex-grow-1.overflow-auto::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-wrapper .flex-grow-1.overflow-auto::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+.sidebar-wrapper .flex-grow-1.overflow-auto::-webkit-scrollbar-track {
+  background: #222;
+}
+
+.sidebar-wrapper .flex-grow-1.overflow-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #444 #222;
+}
+
+/* Sidebar text visibility improvements */
+.sidebar-wrapper .text-muted,
+.sidebar-wrapper .small,
+.sidebar-wrapper .text-muted.small,
+.sidebar-wrapper h6,
+.sidebar-wrapper .conversation-item,
+.sidebar-wrapper .text-muted small {
+  color: #e0e0e0 !important;
+}
+
+.sidebar-wrapper .conversation-item .text-muted {
+  color: #b0b0b0 !important;
+}
+
+.sidebar-wrapper .text-muted {
+  opacity: 1 !important;
+}
+
+/* Quiz summary/result text visibility and scrolling fixes */
+.quiz-summary h2,
+.quiz-summary h6,
+.quiz-summary .quiz-score,
+.quiz-summary .lead,
+.quiz-summary .h3 {
+  color: #fff !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.quiz-summary .bg-white.bg-opacity-20 {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+}
+
+.quiz-summary {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.quiz-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .quiz-summary, .quiz-content {
+    max-height: 50vh;
+  }
+}
+
+/* Global scrollbar styling */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  width: 8px;
+  background: #f4f4f4;
+}
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+  background: #b0b0b0;
+  border-radius: 6px;
+}
+html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: #b0b0b0 #f4f4f4;
+}
+
+/* Navbar user dropdown alignment fix */
+.navbar .dropdown-menu {
+  right: 0;
+  left: auto;
+  min-width: 220px;
+}
+@media (min-width: 992px) {
+  .navbar .dropdown-menu {
+    transform: translateX(-40px);
+  }
+}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Analytics Dashboard{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Your Analytics Dashboard</h2>
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total AI Sessions</h5>
+          <h3 id="total-ai-sessions">-</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total Time Spent (min)
+            <span title="Estimated as AI sessions × 2 min" style="cursor:help; color:#888;">&#9432;</span>
+          </h5>
+          <h3 id="total-ai-time-spent">-</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Last Active</h5>
+          <h3 id="last-active">-</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-4">
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">AI Activity Over Time</h5>
+          <canvas id="ai-over-time-chart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">AI Activity Breakdown</h5>
+          <canvas id="ai-type-chart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Recent AI Activity</h5>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Subject</th>
+                  <th>Question</th>
+                </tr>
+              </thead>
+              <tbody id="recent-ai-table">
+                <tr><td colspan="4">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function fetchAnalytics() {
+  const res = await fetch('/api/analytics');
+  const data = await res.json();
+  document.getElementById('total-ai-sessions').textContent = data.total_ai_sessions;
+  document.getElementById('total-ai-time-spent').textContent = data.total_ai_time_spent;
+  document.getElementById('last-active').textContent = data.last_active ? new Date(data.last_active).toLocaleString() : '-';
+  // AI Over Time Chart
+  const aiLabels = data.ai_over_time.map(x => x.day);
+  const aiCounts = data.ai_over_time.map(x => x.count);
+  new Chart(document.getElementById('ai-over-time-chart'), {
+    type: 'line',
+    data: { labels: aiLabels, datasets: [{ label: 'AI Sessions', data: aiCounts, borderColor: '#007bff', fill: false }] },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+  // AI Type Chart
+  const aiTypeLabels = Object.keys(data.ai_type_counts);
+  const aiTypeCounts = Object.values(data.ai_type_counts);
+  new Chart(document.getElementById('ai-type-chart'), {
+    type: 'doughnut',
+    data: { labels: aiTypeLabels, datasets: [{ data: aiTypeCounts, backgroundColor: ['#007bff','#28a745','#ffc107','#dc3545','#6c757d','#17a2b8'] }] },
+    options: { responsive: true }
+  });
+  // Recent AI Table
+  const aiTable = document.getElementById('recent-ai-table');
+  aiTable.innerHTML = '';
+  if (data.recent_ai.length === 0) aiTable.innerHTML = '<tr><td colspan="4">No data</td></tr>';
+  else data.recent_ai.forEach(row => {
+    aiTable.innerHTML += `<tr><td>${new Date(row.created_at).toLocaleString()}</td><td>${row.conversation_type}</td><td>${row.subject||'-'}</td><td>${row.question}</td></tr>`;
+  });
+}
+fetchAnalytics();
+</script>
+{% endblock %} 
